@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mis XV Años – Luisa</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#d4956a;--gold-light:#f2c8b0;--gold-dark:#b06840;
+  --rose:#e8929e;--rose-deep:#c45a6e;--rose-light:#f8dde2;
+  --cream:#fff5f7;
+  --sky1:#020818;--sky2:#070d2a;--sky3:#0d1545;
+  --star:#fffbe8;--moon:#fdf4cc;
+  --nebula1:rgba(100,60,180,0.18);--nebula2:rgba(232,146,158,0.12);--nebula3:rgba(60,80,200,0.14);
+}
+html{scroll-behavior:smooth}
+body{background:var(--sky1);font-family:'Jost',sans-serif;font-weight:300;overflow-x:hidden;cursor:none;min-height:100vh;overflow:hidden}
+
+/* ── CURSOR ── */
+.cursor{position:fixed;width:8px;height:8px;background:var(--star);border-radius:50%;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);box-shadow:0 0 6px 2px rgba(255,251,232,0.8)}
+.cursor-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(255,251,232,0.35);border-radius:50%;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:width .3s,height .3s}
+
+/* ══════════════════════════════
+   STARFIELD CANVAS (background)
+══════════════════════════════ */
+#starfield{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ── SHOOTING STARS ── */
+.shoot{
+  position:fixed;height:1px;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,0.9) 50%,rgba(255,255,255,0));
+  pointer-events:none;z-index:1;opacity:0;
+  animation:shoot var(--dur) var(--delay) infinite linear
+}
+@keyframes shoot{
+  0%{opacity:0;transform:translateX(0) translateY(0)}
+  5%{opacity:1}
+  60%{opacity:1}
+  100%{opacity:0;transform:translateX(var(--tx)) translateY(var(--ty))}
+}
+
+/* ── NEBULA ── */
+.nebula{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:nebula-pulse var(--dur,12s) infinite ease-in-out alternate}
+@keyframes nebula-pulse{0%{opacity:.5;transform:scale(1)}100%{opacity:1;transform:scale(1.15)}}
+
+/* ── FLOATING PARTICLES (petals + sparkles) ── */
+.particles{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.sparkle{position:absolute;opacity:0;font-size:10px;animation:twinkle-fall var(--dur) var(--delay) infinite ease-in-out}
+@keyframes twinkle-fall{0%{opacity:0;transform:translateY(100vh) scale(0)}10%{opacity:.8}90%{opacity:.2}100%{opacity:0;transform:translateY(-5vh) scale(1.2)}}
+
+/* ══════════════════════════════
+   ENVELOPE SCENE
+══════════════════════════════ */
+#env-scene{
+  position:fixed;inset:0;z-index:100;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity 1s ease,visibility 1s
+}
+#env-scene.hidden{opacity:0;visibility:hidden;pointer-events:none}
+
+/* MOON decoration */
+.moon{
+  position:absolute;top:6%;right:8%;
+  width:80px;height:80px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fffde0,#fde68a 40%,#d4a855 100%);
+  box-shadow:0 0 30px 10px rgba(253,230,138,0.25),0 0 80px 30px rgba(253,230,138,0.1);
+  opacity:0;animation:moon-rise 2s 0.5s forwards cubic-bezier(.22,1,.36,1)
+}
+/* crater */
+.moon::before{content:'';position:absolute;top:22%;left:55%;width:14px;height:14px;border-radius:50%;background:rgba(180,130,40,0.25)}
+.moon::after{content:'';position:absolute;top:55%;left:25%;width:9px;height:9px;border-radius:50%;background:rgba(180,130,40,0.2)}
+@keyframes moon-rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* moon glow ring */
+.moon-ring{
+  position:absolute;top:5.5%;right:7.5%;
+  width:92px;height:92px;border-radius:50%;
+  border:1px solid rgba(253,230,138,0.2);
+  box-shadow:0 0 20px rgba(253,230,138,0.1);
+  animation:ring-pulse 3s infinite ease-in-out;
+  opacity:0;animation-delay:.8s;
+  animation-fill-mode:forwards
+}
+@keyframes ring-pulse{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.08);opacity:.9}}
+
+/* env hint */
+.env-hint{font-size:10px;letter-spacing:6px;color:rgba(255,251,232,0.45);text-transform:uppercase;margin-bottom:52px;text-align:center;opacity:0;animation:fade-in 1s 2s forwards}
+.env-hint b{animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* ── ENVELOPE WRAPPER ── */
+.env-wrap{
+  position:relative;width:360px;height:250px;cursor:none;
+  opacity:0;animation:rise-in 1.2s 0.6s forwards cubic-bezier(.22,1,.36,1);
+  filter:drop-shadow(0 20px 70px rgba(100,60,200,0.25)) drop-shadow(0 0 40px rgba(232,146,158,0.15));
+  transition:filter .3s,transform .3s
+}
+.env-wrap:hover{filter:drop-shadow(0 28px 90px rgba(100,60,200,0.4)) drop-shadow(0 0 50px rgba(232,146,158,0.25));transform:scale(1.02)}
+
+/* ENVELOPE BODY */
+.env-body{
+  position:absolute;inset:0;
+  background:linear-gradient(160deg,#12082a 0%,#0d0620 50%,#07041a 100%);
+  border:1px solid rgba(180,130,255,0.2);
+  overflow:hidden
+}
+/* star dots inside envelope */
+.env-stars{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,0.8) 1px,transparent 1px);background-size:30px 30px;opacity:.08}
+.env-lines{position:absolute;inset:14px;border:1px solid rgba(200,160,255,0.08);pointer-events:none}
+/* bottom fold */
+.env-bottom{position:absolute;bottom:0;left:0;right:0;height:125px;background:linear-gradient(180deg,#100520,#07041a);clip-path:polygon(0 100%,50% 0%,100% 100%)}
+/* side depth */
+.env-body::before{content:'';position:absolute;bottom:0;left:0;width:0;height:0;border-style:solid;border-width:125px 0 0 180px;border-color:transparent transparent transparent rgba(150,100,255,0.06)}
+.env-body::after{content:'';position:absolute;bottom:0;right:0;width:0;height:0;border-style:solid;border-width:0 0 125px 180px;border-color:transparent transparent rgba(150,100,255,0.06) transparent}
+
+/* TOP FLAP */
+.env-flap{
+  position:absolute;top:0;left:0;right:0;height:148px;
+  background:linear-gradient(160deg,#1a0a35,#100520);
+  clip-path:polygon(0 0,50% 100%,100% 0);
+  transform-origin:top center;
+  transition:transform 0.8s cubic-bezier(.22,1,.36,1);
+  z-index:10;
+  border-bottom:1px solid rgba(200,160,255,0.1)
+}
+.env-flap.open{transform:rotateX(-180deg)}
+
+/* WAX SEAL — moon crescent */
+.seal{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:66px;height:66px;border-radius:50%;
+  background:radial-gradient(circle at 40% 40%,#4a2060 0%,#1e0840 100%);
+  border:2px solid rgba(200,160,255,0.6);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;z-index:20;cursor:none;
+  box-shadow:0 0 0 5px rgba(180,130,255,0.12),0 6px 28px rgba(100,60,200,0.5),0 0 40px rgba(180,130,255,0.15),inset 0 1px 0 rgba(220,180,255,0.15);
+  transition:transform .3s,box-shadow .3s;
+  animation:seal-glow 3s infinite ease-in-out
+}
+@keyframes seal-glow{0%,100%{box-shadow:0 0 0 5px rgba(180,130,255,0.12),0 6px 28px rgba(100,60,200,0.5),0 0 30px rgba(180,130,255,0.1)}50%{box-shadow:0 0 0 8px rgba(180,130,255,0.2),0 6px 40px rgba(100,60,200,0.7),0 0 60px rgba(180,130,255,0.25)}}
+.seal:hover{transform:translate(-50%,-50%) scale(1.1)}
+.seal.break{animation:seal-break .5s forwards}
+@keyframes seal-break{0%{transform:translate(-50%,-50%) scale(1);opacity:1}35%{transform:translate(-50%,-50%) scale(1.3) rotate(15deg);opacity:1}100%{transform:translate(-50%,-58%) scale(0) rotate(-30deg);opacity:0}}
+
+/* LETTER PEEK */
+.letter-peek{
+  position:absolute;bottom:18px;left:50%;
+  transform:translateX(-50%) translateY(115%);
+  width:292px;height:186px;
+  background:linear-gradient(155deg,#12082a,#0d0520);
+  border:1px solid rgba(200,160,255,0.35);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;
+  transition:transform 0.9s 0.2s cubic-bezier(.22,1,.36,1);
+  z-index:5;
+  box-shadow:0 -4px 30px rgba(100,60,200,0.2),0 0 20px rgba(180,130,255,0.1);
+  overflow:hidden
+}
+.letter-peek::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,0.6) 1px,transparent 1px);background-size:20px 20px;opacity:.06}
+.letter-peek.show{transform:translateX(-50%) translateY(0)}
+.lp-name{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;color:var(--moon);letter-spacing:2px;text-shadow:0 0 20px rgba(253,230,138,0.5)}
+.lp-sub{font-family:'Cormorant Garamond',serif;font-size:13px;letter-spacing:8px;color:rgba(200,160,255,0.8);text-transform:uppercase}
+.lp-deco{font-size:20px;opacity:.7;margin-top:6px;letter-spacing:8px}
+
+/* ══════════════════════════════
+   INVITATION
+══════════════════════════════ */
+#inv-wrap{position:relative;z-index:2;opacity:0;visibility:hidden;transition:opacity .7s ease}
+#inv-wrap.visible{opacity:1;visibility:visible}
+
+.sky-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 0%,#0d1545 0%,transparent 65%),
+    radial-gradient(ellipse 60% 50% at 15% 50%,rgba(80,40,160,0.25) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 30%,rgba(232,100,120,0.12) 0%,transparent 60%),
+    radial-gradient(ellipse 80% 80% at 50% 100%,rgba(60,20,120,0.3) 0%,transparent 60%),
+    var(--sky1);
+  opacity:0;transition:opacity 1.2s .5s
+}
+.sky-bg.show{opacity:1}
+
+/* floating moon in invitation */
+.inv-moon{
+  position:fixed;top:5%;right:6%;width:90px;height:90px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fffde0,#fde68a 40%,#d4a855 100%);
+  box-shadow:0 0 40px 12px rgba(253,230,138,0.2),0 0 100px 40px rgba(253,230,138,0.07);
+  pointer-events:none;z-index:2;
+  opacity:0;transition:opacity 1s 1.5s
+}
+.inv-moon::before{content:'';position:absolute;top:22%;left:55%;width:14px;height:14px;border-radius:50%;background:rgba(180,130,40,0.25)}
+.inv-moon::after{content:'';position:absolute;top:55%;left:25%;width:9px;height:9px;border-radius:50%;background:rgba(180,130,40,0.2)}
+.inv-moon.show{opacity:1}
+
+/* horizontal constellation line across top */
+.constellation{
+  position:fixed;top:0;left:0;right:0;height:120px;
+  pointer-events:none;z-index:2;
+  opacity:0;transition:opacity 1.5s 2s
+}
+.constellation.show{opacity:1}
+
+.invitation{
+  position:relative;z-index:2;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:80px 24px 100px;color:var(--cream)
+}
+
+.inv-item{opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s cubic-bezier(.22,1,.36,1)}
+.inv-item.show{opacity:1;transform:translateY(0)}
+
+/* TOP BADGE */
+.top-badge{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.top-badge span{font-size:14px;opacity:.7;letter-spacing:4px}
+
+.line-decor{display:flex;align-items:center;gap:16px}
+.line-decor .bar{display:block;height:1px;width:60px;background:linear-gradient(90deg,transparent,rgba(200,160,255,0.6))}
+.line-decor .bar.r{background:linear-gradient(90deg,rgba(200,160,255,0.6),transparent)}
+.line-decor em{font-family:'Cormorant Garamond',serif;font-style:italic;color:rgba(200,160,255,0.9);font-size:13px;letter-spacing:4px;text-transform:uppercase;font-weight:300}
+
+.xv-number{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(100px,22vw,200px);font-weight:300;line-height:1;letter-spacing:-8px;
+  background:linear-gradient(135deg,#a78bfa,var(--rose-light),var(--moon),var(--rose),#c4b5fd);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  position:relative;filter:drop-shadow(0 0 30px rgba(167,139,250,0.35))
+}
+.xv-number::after{content:'XV';position:absolute;inset:0;background:none;-webkit-text-fill-color:transparent;-webkit-text-stroke:1px rgba(200,160,255,0.12);transform:translate(5px,5px);z-index:-1}
+
+.name{font-family:'Cormorant Garamond',serif;font-size:clamp(42px,10vw,86px);font-weight:300;font-style:italic;letter-spacing:2px;color:var(--moon);margin-top:-20px;text-align:center;text-shadow:0 0 40px rgba(253,230,138,0.3)}
+.subtitle{margin-top:24px;font-size:11px;letter-spacing:6px;color:rgba(200,160,255,0.8);text-transform:uppercase}
+
+.star-divider{margin:44px auto;display:flex;align-items:center;gap:10px}
+.star-divider .bar{width:70px;height:1px;background:linear-gradient(90deg,transparent,rgba(200,160,255,0.5))}
+.star-divider .bar.r{background:linear-gradient(90deg,rgba(200,160,255,0.5),transparent)}
+.star-divider .stars{display:flex;gap:6px;align-items:center}
+.star-divider .s{font-size:10px;color:rgba(255,251,232,0.8);animation:twinkle-inv var(--d,2s) var(--dl,0s) infinite ease-in-out}
+@keyframes twinkle-inv{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.1)}}
+
+/* ── INFO CARDS ── */
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;width:100%;max-width:700px}
+.info-card{
+  border:1px solid rgba(150,100,255,0.2);
+  padding:26px 22px;text-align:center;
+  background:rgba(80,40,160,0.07);
+  position:relative;overflow:hidden;
+  transition:border-color .3s,background .3s,transform .3s
+}
+.info-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(150,100,255,0.1),rgba(232,146,158,0.05));opacity:0;transition:opacity .3s}
+.info-card::after{content:'';position:absolute;top:-1px;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,rgba(200,160,255,0.5),transparent)}
+.info-card:hover{border-color:rgba(200,160,255,0.5);background:rgba(100,60,200,0.1);transform:translateY(-5px)}
+.info-card:hover::before{opacity:1}
+.card-icon{font-size:22px;margin-bottom:10px;display:block}
+.card-label{font-size:9px;letter-spacing:5px;color:rgba(200,160,255,0.8);text-transform:uppercase;margin-bottom:8px;display:block}
+.card-value{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;line-height:1.3;color:var(--cream)}
+.card-sub{font-size:11px;color:rgba(255,245,247,.4);margin-top:4px;display:block;letter-spacing:1px}
+
+/* ── COUNTDOWN ── */
+.countdown-section{margin-top:56px;text-align:center}
+.countdown-label{font-size:9px;letter-spacing:6px;color:rgba(200,160,255,0.8);text-transform:uppercase;margin-bottom:24px;display:block}
+.countdown{display:flex;gap:24px;justify-content:center;flex-wrap:wrap}
+.count-unit{display:flex;flex-direction:column;align-items:center;min-width:60px}
+.count-num{
+  font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;line-height:1;
+  background:linear-gradient(135deg,var(--moon),#c4b5fd);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text
+}
+.count-num.flip{animation:flip-num .4s ease}
+@keyframes flip-num{0%{transform:translateY(-10px);opacity:0}100%{transform:translateY(0);opacity:1}}
+.count-lbl{font-size:9px;letter-spacing:3px;color:rgba(255,245,247,.35);text-transform:uppercase;margin-top:4px}
+.count-sep{font-family:'Cormorant Garamond',serif;font-size:40px;color:rgba(200,160,255,.3);align-self:flex-start;padding-top:4px}
+
+/* ── QUOTE ── */
+.quote{margin:56px auto 0;max-width:500px;text-align:center;position:relative;padding:0 20px}
+.quote::before{content:'"';position:absolute;top:-20px;left:0;font-family:'Cormorant Garamond',serif;font-size:80px;color:rgba(150,100,255,0.15);line-height:1}
+.quote p{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:rgba(255,245,247,.7);line-height:1.8;font-weight:300}
+.quote cite{display:block;margin-top:14px;font-size:10px;letter-spacing:4px;color:rgba(200,160,255,0.8);text-transform:uppercase}
+
+/* ── CTA ── */
+.cta-section{margin-top:60px;text-align:center}
+.cta-note{font-size:10px;letter-spacing:4px;color:rgba(255,245,247,.35);text-transform:uppercase;margin-bottom:20px;display:block}
+.btn-confirm{
+  display:inline-flex;align-items:center;gap:12px;
+  padding:18px 50px;background:transparent;
+  border:1px solid rgba(200,160,255,0.6);color:rgba(200,160,255,0.9);
+  font-family:'Jost',sans-serif;font-weight:300;font-size:12px;letter-spacing:5px;text-transform:uppercase;
+  text-decoration:none;cursor:none;position:relative;overflow:hidden;
+  transition:color .4s;
+  box-shadow:0 0 20px rgba(150,100,255,0.1)
+}
+.btn-confirm::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(100,60,200,0.8),rgba(196,90,110,0.6));
+  transform:translateX(-101%);
+  transition:transform .4s cubic-bezier(.22,1,.36,1)
+}
+.btn-confirm:hover::before{transform:translateX(0)}
+.btn-confirm:hover{color:var(--cream);box-shadow:0 0 40px rgba(150,100,255,0.3)}
+.btn-confirm span,.btn-icon{position:relative;z-index:1}
+.btn-icon{font-size:18px}
+
+.footer-note{margin-top:60px;text-align:center;font-size:10px;letter-spacing:3px;color:rgba(255,245,247,.15);text-transform:uppercase}
+
+/* ── KEYFRAMES ── */
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+@keyframes rise-in{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:300}
+
+@media(max-width:500px){
+  .env-wrap{width:292px;height:204px}
+  .letter-peek{width:238px;height:152px}
+  .info-grid{grid-template-columns:1fr 1fr}
+  .xv-number{letter-spacing:-4px}
+  .btn-confirm{padding:16px 28px;letter-spacing:3px}
+  .countdown{gap:14px}
+  .inv-moon{width:60px;height:60px}
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Starfield canvas -->
+<canvas id="starfield"></canvas>
+
+<!-- Particles / sparkles -->
+<div class="particles" id="particles"></div>
+
+<!-- Confetti -->
+<canvas id="confetti"></canvas>
+
+<!-- ════════════════ ENVELOPE SCENE ════════════════ -->
+<div id="env-scene">
+  <!-- Moon top right -->
+  <div class="moon"></div>
+  <div class="moon-ring"></div>
+
+  <p class="env-hint"><b>✦</b> &nbsp; Toca el sello para abrir &nbsp; <b>✦</b></p>
+
+  <div class="env-wrap" id="envWrap">
+    <!-- Letter peeking out -->
+    <div class="letter-peek" id="letterPeek">
+      <div class="lp-name">Luisa</div>
+      <div class="lp-sub">· XV Años ·</div>
+      <div class="lp-deco">🌙 ✦ ⭐</div>
+    </div>
+
+    <div class="env-body">
+      <div class="env-stars"></div>
+      <div class="env-lines"></div>
+      <div class="env-bottom"></div>
+      <div class="env-flap" id="envFlap"></div>
+      <div class="seal" id="seal">🌙</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ INVITATION ════════════════ -->
+<div class="sky-bg" id="skyBg"></div>
+<div class="inv-moon" id="invMoon"></div>
+
+<!-- Constellation SVG overlay -->
+<svg class="constellation" id="constellation" viewBox="0 0 1440 120" preserveAspectRatio="none">
+  <!-- constellation lines -->
+  <g stroke="rgba(200,160,255,0.25)" stroke-width="0.8" fill="none">
+    <line x1="80" y1="30" x2="160" y2="60"/>
+    <line x1="160" y1="60" x2="280" y2="25"/>
+    <line x1="280" y1="25" x2="400" y2="70"/>
+    <line x1="400" y1="70" x2="520" y2="35"/>
+    <line x1="900" y1="45" x2="1020" y2="20"/>
+    <line x1="1020" y1="20" x2="1150" y2="55"/>
+    <line x1="1150" y1="55" x2="1280" y2="30"/>
+    <line x1="1280" y1="30" x2="1380" y2="65"/>
+  </g>
+  <!-- constellation stars -->
+  <g fill="rgba(255,251,232,0.7)">
+    <circle cx="80" cy="30" r="2"/>
+    <circle cx="160" cy="60" r="1.5"/>
+    <circle cx="280" cy="25" r="2.5"/>
+    <circle cx="400" cy="70" r="1.5"/>
+    <circle cx="520" cy="35" r="2"/>
+    <circle cx="900" cy="45" r="2"/>
+    <circle cx="1020" cy="20" r="2.5"/>
+    <circle cx="1150" cy="55" r="1.5"/>
+    <circle cx="1280" cy="30" r="2"/>
+    <circle cx="1380" cy="65" r="1.5"/>
+  </g>
+</svg>
+
+<div id="inv-wrap">
+  <div class="invitation">
+
+    <div class="top-badge inv-item">
+      <span>✦ 🌙 ✦</span>
+    </div>
+
+    <div class="line-decor inv-item">
+      <span class="bar"></span><em>Mis Quince Años</em><span class="bar r"></span>
+    </div>
+
+    <div class="xv-number inv-item">XV</div>
+    <div class="name inv-item">Luisa</div>
+    <div class="subtitle inv-item">Una noche entre estrellas</div>
+
+    <div class="star-divider inv-item">
+      <div class="bar"></div>
+      <div class="stars">
+        <span class="s" style="--d:2.2s;--dl:0s">★</span>
+        <span class="s" style="--d:2.8s;--dl:.4s;font-size:14px">✦</span>
+        <span class="s" style="--d:2s;--dl:.2s">★</span>
+      </div>
+      <div class="bar r"></div>
+    </div>
+
+    <div class="info-grid inv-item">
+      <div class="info-card">
+        <span class="card-icon">🌙</span>
+        <span class="card-label">Fecha</span>
+        <div class="card-value">15 de Marzo</div>
+        <span class="card-sub">2025 · Sábado</span>
+      </div>
+      <div class="info-card">
+        <span class="card-icon">✦</span>
+        <span class="card-label">Hora</span>
+        <div class="card-value">7:00 PM</div>
+        <span class="card-sub">Puertas abren 6:30 PM</span>
+      </div>
+      <div class="info-card">
+        <span class="card-icon">⭐</span>
+        <span class="card-label">Lugar</span>
+        <div class="card-value">Salón Crystal</div>
+        <span class="card-sub">Av. Principal 123, Bogotá</span>
+      </div>
+      <div class="info-card">
+        <span class="card-icon">🌟</span>
+        <span class="card-label">Dress Code</span>
+        <div class="card-value">Formal</div>
+        <span class="card-sub">Colores noche & pastel</span>
+      </div>
+    </div>
+
+    <div class="countdown-section inv-item">
+      <span class="countdown-label">✦ &nbsp; Faltan &nbsp; ✦</span>
+      <div class="countdown">
+        <div class="count-unit"><span class="count-num" id="days">00</span><span class="count-lbl">Días</span></div>
+        <div class="count-sep">:</div>
+        <div class="count-unit"><span class="count-num" id="hours">00</span><span class="count-lbl">Horas</span></div>
+        <div class="count-sep">:</div>
+        <div class="count-unit"><span class="count-num" id="minutes">00</span><span class="count-lbl">Min</span></div>
+        <div class="count-sep">:</div>
+        <div class="count-unit"><span class="count-num" id="seconds">00</span><span class="count-lbl">Seg</span></div>
+      </div>
+    </div>
+
+    <div class="quote inv-item">
+      <p>"Bajo el mismo cielo de estrellas que me vio nacer, hoy comienzo a brillar."</p>
+      <cite>— Luisa</cite>
+    </div>
+
+    <div class="cta-section inv-item">
+      <span class="cta-note">Confirma tu asistencia antes del 10 de Marzo</span>
+      <a class="btn-confirm" id="whatsappBtn" href="#" target="_blank">
+        <span>Confirmar Asistencia</span>
+      </a>
+    </div>
+
+    <div class="footer-note inv-item">Con amor, Luisa &amp; Familia · 2025 &nbsp; 🌙</div>
+  </div>
+</div>
+
+<script>
+/* ── CURSOR ── */
+const cursor=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px'});
+(function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop)})();
+document.querySelectorAll('a,.info-card,.seal,.env-wrap').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ring.style.width='50px';ring.style.height='50px'});
+  el.addEventListener('mouseleave',()=>{ring.style.width='32px';ring.style.height='32px'});
+});
+
+/* ── STARFIELD ── */
+const sf=document.getElementById('starfield'),sc=sf.getContext('2d');
+let stars=[];
+function resizeSF(){sf.width=innerWidth;sf.height=innerHeight;buildStars()}
+function buildStars(){
+  stars=[];
+  const count=Math.floor((sf.width*sf.height)/1400);
+  for(let i=0;i<count;i++){
+    const size=Math.random();
+    stars.push({
+      x:Math.random()*sf.width,
+      y:Math.random()*sf.height,
+      r:size<.6?.5:size<.85?1:size<.96?1.5:2,
+      alpha:0.2+Math.random()*.8,
+      twinkleSpeed:.005+Math.random()*.015,
+      twinkleDir:Math.random()>.5?1:-1,
+      twinkleMin:.1,
+      color:Math.random()>.85?`hsl(${240+Math.random()*60},80%,85%)`:'#fffbe8'
+    });
+  }
+}
+function drawStars(){
+  sc.clearRect(0,0,sf.width,sf.height);
+  stars.forEach(s=>{
+    s.alpha+=s.twinkleSpeed*s.twinkleDir;
+    if(s.alpha>=1){s.alpha=1;s.twinkleDir=-1}
+    if(s.alpha<=s.twinkleMin){s.alpha=s.twinkleMin;s.twinkleDir=1}
+    sc.beginPath();
+    sc.arc(s.x,s.y,s.r,0,Math.PI*2);
+    sc.fillStyle=s.color;
+    sc.globalAlpha=s.alpha;
+    sc.fill();
+    if(s.r>=1.5){
+      sc.globalAlpha=s.alpha*.3;
+      sc.arc(s.x,s.y,s.r+2,0,Math.PI*2);
+      sc.fill();
+    }
+    sc.globalAlpha=1;
+  });
+  requestAnimationFrame(drawStars);
+}
+window.addEventListener('resize',resizeSF);resizeSF();drawStars();
+
+/* ── SHOOTING STARS ── */
+function createShootingStar(){
+  const el=document.createElement('div');
+  el.className='shoot';
+  const startX=20+Math.random()*60; // % from left
+  const startY=5+Math.random()*30;  // % from top
+  const angle=20+Math.random()*20;  // degrees
+  const len=120+Math.random()*200;
+  const tx=Math.cos(angle*Math.PI/180)*len;
+  const ty=Math.sin(angle*Math.PI/180)*len;
+  const dur=1.2+Math.random()*1.5;
+  const delay=Math.random()*6;
+  el.style.cssText=`
+    top:${startY}%;left:${startX}%;
+    width:${len}px;
+    transform:rotate(${angle}deg);
+    --dur:${dur}s;--delay:${delay}s;
+    --tx:${tx}px;--ty:${ty}px;
+  `;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), (dur+delay+1)*1000*6);
+}
+for(let i=0;i<6;i++) createShootingStar();
+setInterval(()=>createShootingStar(), 4000);
+
+/* ── NEBULAE ── */
+[
+  {w:600,h:400,top:'10%',left:'5%',color:'rgba(100,60,180,0.2)',dur:'14s'},
+  {w:500,h:350,top:'40%',right:'5%',color:'rgba(80,40,160,0.15)',dur:'18s'},
+  {w:700,h:300,top:'70%',left:'20%',color:'rgba(196,90,110,0.1)',dur:'12s'},
+].forEach(n=>{
+  const el=document.createElement('div');
+  el.className='nebula';
+  el.style.cssText=`width:${n.w}px;height:${n.h}px;top:${n.top||'auto'};left:${n.left||'auto'};right:${n.right||'auto'};background:${n.color};--dur:${n.dur}`;
+  document.body.appendChild(el);
+});
+
+/* ── SPARKLES ── */
+const pc=document.getElementById('particles');
+['✦','★','✧','·','⭐'].forEach(e=>{
+  for(let j=0;j<8;j++){
+    const p=document.createElement('div');p.className='sparkle';
+    p.textContent=e;
+    p.style.cssText=`left:${Math.random()*100}%;bottom:${Math.random()*10}%;--dur:${8+Math.random()*12}s;--delay:${Math.random()*10}s;font-size:${8+Math.random()*10}px;color:${Math.random()>.5?'rgba(255,251,232,0.6)':'rgba(200,160,255,0.5)'}`;
+    pc.appendChild(p);
+  }
+});
+
+/* ── CONFETTI (stars & moons) ── */
+const cfv=document.getElementById('confetti'),cctx=cfv.getContext('2d');
+let pieces=[],cfActive=false;
+function resizeCF(){cfv.width=innerWidth;cfv.height=innerHeight}
+window.addEventListener('resize',resizeCF);resizeCF();
+const SHAPES=['★','✦','✧','🌟','⭐'];
+const COLS=['#e8929e','#c4b5fd','#fde68a','#f2c8b0','#a78bfa','#fff0f3','#bfdbfe'];
+
+function spawnConfetti(){
+  cfActive=true;
+  for(let i=0;i<220;i++){
+    pieces.push({
+      x:Math.random()*cfv.width,y:-10-Math.random()*300,
+      txt:SHAPES[~~(Math.random()*SHAPES.length)],
+      color:COLS[~~(Math.random()*COLS.length)],
+      size:10+~~(Math.random()*14),
+      vx:(Math.random()-.5)*3.5,vy:1.5+Math.random()*4,
+      rot:Math.random()*Math.PI*2,rv:(Math.random()-.5)*.1,
+      life:200+~~(Math.random()*100)
+    });
+  }
+}
+function drawCF(){
+  if(!cfActive)return;
+  cctx.clearRect(0,0,cfv.width,cfv.height);
+  let alive=false;
+  pieces.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;p.rot+=p.rv;p.life--;
+    if(p.life<=0)return;
+    alive=true;
+    cctx.save();cctx.globalAlpha=Math.min(1,p.life/50);
+    cctx.translate(p.x,p.y);cctx.rotate(p.rot);
+    cctx.font=`${p.size}px serif`;cctx.fillStyle=p.color;
+    cctx.textAlign='center';cctx.textBaseline='middle';
+    cctx.fillText(p.txt,0,0);
+    cctx.restore();
+  });
+  pieces=pieces.filter(p=>p.life>0);
+  if(alive)requestAnimationFrame(drawCF);
+  else{cfActive=false;cctx.clearRect(0,0,cfv.width,cfv.height)}
+}
+
+/* ── OPEN ENVELOPE ── */
+let opened=false;
+function openEnvelope(){
+  if(opened)return;opened=true;
+
+  document.getElementById('seal').classList.add('break');
+  setTimeout(()=>document.getElementById('envFlap').classList.add('open'),380);
+  setTimeout(()=>document.getElementById('letterPeek').classList.add('show'),950);
+  setTimeout(()=>{spawnConfetti();drawCF()},700);
+  setTimeout(()=>document.getElementById('env-scene').classList.add('hidden'),1900);
+
+  setTimeout(()=>{
+    document.body.style.overflow='auto';
+    document.getElementById('inv-wrap').classList.add('visible');
+    document.getElementById('skyBg').classList.add('show');
+    document.getElementById('invMoon').classList.add('show');
+    document.getElementById('constellation').classList.add('show');
+
+    document.querySelectorAll('.inv-item').forEach((el,i)=>{
+      setTimeout(()=>el.classList.add('show'),i*170);
+    });
+    startCountdown();
+    const phone='573001234567';
+    const msg=encodeURIComponent('¡Hola! Confirmo mi asistencia a los XV Años de Luisa el 15 de Marzo de 2025. 🌙✨');
+    document.getElementById('whatsappBtn').href=`https://wa.me/${phone}?text=${msg}`;
+  },2100);
+}
+document.getElementById('seal').addEventListener('click',openEnvelope);
+document.getElementById('envWrap').addEventListener('click',openEnvelope);
+
+/* ── COUNTDOWN ── */
+function pad(n){return String(n).padStart(2,'0')}
+function startCountdown(){
+  const target=new Date('2025-03-15T19:00:00');
+  function tick(){
+    const d=target-new Date();
+    if(d<=0){document.querySelector('.countdown-section').innerHTML='<span class="countdown-label">🌙 ¡Ya es la noche de Luisa! ✨</span>';return}
+    [['days',~~(d/86400000)],['hours',~~(d%86400000/3600000)],['minutes',~~(d%3600000/60000)],['seconds',~~(d%60000/1000)]].forEach(([id,v])=>{
+      const el=document.getElementById(id);if(!el)return;
+      const pv=pad(v);if(el.textContent!==pv){el.classList.remove('flip');void el.offsetWidth;el.classList.add('flip');el.textContent=pv}
+    });
+  }
+  tick();setInterval(tick,1000);
+}
+</script>
+</body>
+</html>
